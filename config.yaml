@@ -1,0 +1,126 @@
+# * Settings marked with * are advanced settings that won't appear in the Streamlit page and can only be modified manually here
+# recommend to set in streamlit page
+# -------------------
+# version: "1.0.0"
+# -------------------
+
+## ======================== Basic Settings ======================== ##
+
+display_language: "zh-CN"
+
+# dlazy settings — every model call (LLM / ASR / TTS) goes through this one key.
+# Get the key at https://dlazy.com/dashboard/organization/api-key
+dlazy:
+  api_key: 'your-dlazy-api-key'
+  # *Self-hosted deployments can point this elsewhere
+  base_url: 'https://dlazy.com'
+  # LLM used for splitting, summarizing and translating
+  # ["claude-sonnet-5", "qwen3.8-max", "kimi-k3"]
+  llm_model: 'claude-sonnet-5'
+  # Speech-to-text ["fun-asr", "elevenlabs-stt"]
+  asr_model: 'fun-asr'
+  # Dubbing voice ["qwen-tts", "doubao-tts", "elevenlabs-tts"]
+  tts_model: 'qwen-tts'
+  # Voice id for the selected TTS model; blank uses that model's default voice
+  tts_voice: ''
+
+# *Number of LLM multi-threaded accesses
+max_workers: 4
+
+# Language settings, written into the prompt, can be described in natural language
+target_language: '简体中文'
+
+asr:
+  # Source language of the video. dlazy ASR accepts 'zh' or 'en' only.
+  language: 'en'
+  detected_language: 'en'
+
+# Whether to burn subtitles into the video
+burn_subtitles: true
+
+## ======================== Advanced Settings ======================== ##
+# *🔬 h264_nvenc GPU acceleration for ffmpeg, make sure your GPU supports it
+ffmpeg_gpu: false
+
+# *Youtube settings
+youtube:
+  cookies_path: ''
+
+# *Default resolution for downloading YouTube videos [360, 1080, best]
+ytb_resolution: '1080'
+
+subtitle:
+  # *Maximum length of each subtitle line in characters
+  max_length: 75
+  # *Translated subtitles are slightly larger than source subtitles, affecting the reference length for subtitle splitting
+  target_multiplier: 1.2
+
+# *Summary length
+summary_length: 8000
+
+# *Maximum number of words for the first rough cut, below 18 will cut too finely affecting translation, above 22 is too long and will make subsequent subtitle splitting difficult to align
+max_split_length: 20
+
+# *Whether to reflect the translation result in the original text
+reflect_translate: true
+
+# *Whether to pause after extracting professional terms and before translation, allowing users to manually adjust the terminology table output\log\terminology.json
+pause_before_translate: false
+
+## ======================== Dubbing Settings ======================== ##
+# Voice is selected under `dlazy` above. Voice cloning is not available —
+# dlazy exposes no cloning tool, so dubbing uses preset voices only.
+
+# *Audio speed range
+speed_factor:
+  min: 1
+  accept: 1.2 # Maximum acceptable speed
+  max: 1.4
+
+# *Merge audio configuration
+min_subtitle_duration: 2.5 # Minimum subtitle duration, will be forcibly extended
+min_trim_duration: 3.5 # Subtitles shorter than this value won't be split
+tolerance: 1.5 # Allowed extension time to the next subtitle
+
+## ======================== Additional settings ======================== ##
+
+# Supported upload video formats
+allowed_video_formats:
+- 'mp4'
+- 'mov'
+- 'avi'
+- 'mkv'
+- 'flv'
+- 'wmv'
+- 'webm'
+
+allowed_audio_formats:
+- 'wav'
+- 'mp3'
+- 'flac'
+- 'm4a'
+
+# Spacy models — local sentence-splitting pipeline, kept on purpose
+spacy_model_map:
+  en: 'en_core_web_md'
+  ru: 'ru_core_news_md'
+  fr: 'fr_core_news_md'
+  ja: 'ja_core_news_md'
+  es: 'es_core_news_md'
+  de: 'de_core_news_md'
+  it: 'it_core_news_md'
+  zh: 'zh_core_web_md'
+
+# Languages that use space as separator
+language_split_with_space:
+- 'en'
+- 'es'
+- 'fr'
+- 'de'
+- 'it'
+- 'ru'
+
+# Languages that do not use space as separator
+language_split_without_space:
+- 'zh'
+- 'ja'
