@@ -83,15 +83,41 @@ def upload_file(path: str) -> str:
     return data["publicUrl"]
 
 
+# A long generation is polled for minutes. A proxy or flaky link can abort a
+# single poll, and giving up there would discard work that is already paid for
+# and probably finished server-side — so transient errors are retried.
+POLL_MAX_CONSECUTIVE_ERRORS = 5
+
+
 def _poll(generate_id: str, timeout: int):
     deadline = time.time() + timeout
     url = f"{_base_url()}/api/cli/tool?generateId={generate_id}"
+    errors = 0
     while time.time() < deadline:
         time.sleep(POLL_INTERVAL)
-        resp = requests.get(url, headers=_headers(), timeout=60)
-        if not resp.ok:
-            raise DlazyError(f"poll failed ({resp.status_code}): {resp.text[:300]}")
-        data = resp.json()
+        try:
+            resp = requests.get(url, headers=_headers(), timeout=60)
+            if not resp.ok:
+                raise DlazyError(
+                    f"poll failed ({resp.status_code}): {resp.text[:300]}"
+                )
+            data = resp.json()
+        except DlazyError:
+            raise
+        except Exception as e:
+            errors += 1
+            if errors >= POLL_MAX_CONSECUTIVE_ERRORS:
+                raise DlazyError(
+                    f"task {generate_id}: polling failed {errors} times in a row: {e}"
+                ) from e
+            rprint(
+                f"[yellow]⚠️ transient error polling {generate_id} "
+                f"({errors}/{POLL_MAX_CONSECUTIVE_ERRORS}): {e}[/yellow]"
+            )
+            time.sleep(POLL_INTERVAL * errors)
+            continue
+
+        errors = 0
         status = data.get("status")
         if status == "completed":
             return data.get("result")
@@ -169,15 +195,36 @@ def check_credentials() -> bool:
 _MANIFEST_CACHE = {}
 
 
+# The manifest is a small metadata call, but it is hit on every settings render.
+# A short timeout plus caching the *failure* keeps a missing key or a slow network
+# from stalling the page for a minute on each rerun.
+MANIFEST_TIMEOUT = 10
+MANIFEST_FAILURE_TTL = 60
+
+
 def get_manifest(force: bool = False) -> dict:
-    if not force and "data" in _MANIFEST_CACHE:
-        return _MANIFEST_CACHE["data"]
-    resp = requests.get(
-        f"{_base_url()}/api/cli/tool/manifest", headers=_headers(), timeout=60
-    )
-    if not resp.ok:
-        raise DlazyError(f"manifest failed ({resp.status_code}): {resp.text[:300]}")
-    data = resp.json()
+    if not force:
+        if "data" in _MANIFEST_CACHE:
+            return _MANIFEST_CACHE["data"]
+        failed_at = _MANIFEST_CACHE.get("failed_at")
+        if failed_at is not None and time.time() - failed_at < MANIFEST_FAILURE_TTL:
+            raise DlazyError(_MANIFEST_CACHE.get("error", "manifest unavailable"))
+    try:
+        resp = requests.get(
+            f"{_base_url()}/api/cli/tool/manifest",
+            headers=_headers(),
+            timeout=MANIFEST_TIMEOUT,
+        )
+        if not resp.ok:
+            raise DlazyError(
+                f"manifest failed ({resp.status_code}): {resp.text[:300]}"
+            )
+        data = resp.json()
+    except Exception as e:
+        _MANIFEST_CACHE["failed_at"] = time.time()
+        _MANIFEST_CACHE["error"] = str(e)
+        raise
+    _MANIFEST_CACHE.pop("failed_at", None)
     _MANIFEST_CACHE["data"] = data
     return data
 
