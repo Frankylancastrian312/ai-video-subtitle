@@ -100,12 +100,30 @@ def _poll(generate_id: str, timeout: int):
     raise DlazyError(f"task {generate_id} did not finish within {timeout}s")
 
 
+def _resolve_model_id(model: str) -> str:
+    """Map a user-facing tool name onto the id the tool API keys on.
+
+    Everything user-facing (docs, config, the CLI) uses `cli_name`, but
+    /api/cli/tool looks the model up by `id`, and the two differ for a good
+    third of the catalogue — e.g. `qwen3.8-max` -> `qwen-3-8-max` and
+    `search_audio` -> `search-audio`. Sending the cli_name for one of those
+    answers 400 invalid_tool, so resolve through the manifest first.
+    """
+    try:
+        for tool in get_manifest().get("tools", []):
+            if tool.get("cli_name") == model:
+                return tool.get("id") or model
+    except Exception:
+        pass
+    return model
+
+
 def run_tool(model: str, payload: dict, timeout: int = DEFAULT_TIMEOUT):
     """Run one dlazy tool and return its output, waiting out async tasks."""
     resp = requests.post(
         f"{_base_url()}/api/cli/tool",
         headers=_headers(),
-        json={"model": model, "input": payload},
+        json={"model": _resolve_model_id(model), "input": payload},
         timeout=timeout,
     )
     if not resp.ok:
