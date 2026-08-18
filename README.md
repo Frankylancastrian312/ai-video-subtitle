@@ -27,7 +27,8 @@ Drop in a video file or a YouTube link, and the pipeline runs:
 ## Requirements
 
 - Python 3.10
-- ffmpeg on your PATH
+- ffmpeg **and ffprobe** on your PATH (pydub needs ffprobe to read durations;
+  some portable ffmpeg builds ship only `ffmpeg.exe`)
 - A dlazy API key — get one at
   [dlazy.com/dashboard/organization/api-key](https://dlazy.com/dashboard/organization/api-key)
 

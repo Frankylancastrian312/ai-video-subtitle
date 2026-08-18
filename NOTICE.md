@@ -45,6 +45,8 @@ As required by Apache-2.0 §4(b), the modifications are listed below.
 | `Dockerfile` | Rebuilt on `python:3.10-slim`; the `nvidia/cuda` base image, PyTorch install and CUDA env vars are gone |
 | `requirements.txt` | 30 → 19 packages after dropping the torch/whisperx/pyannote stack and the removed backends |
 | `install.py`, `launch.py` | PyTorch, CUDA detection and whisperx preflight checks removed |
+| `core/_12_dub_to_vid.py`, `core/utils/models.py` | The dub track now replaces the original audio outright. Upstream mixed it with the Demucs-separated background stem, which no longer exists here; the two orphaned path constants were dropped and the ffmpeg call now raises on a non-zero exit instead of reporting success |
+| `core/_10_gen_audio.py` | Fixed an upstream bug surfaced by numpy>=2: `new_sub_times` stored numpy scalars, whose repr became `np.float64(x)`, which broke the `eval()` that reads the column back in `_11_merge_audio.py`. Values are now coerced to plain floats at the source |
 | `README.md`, `README_CN.md`, branding across the app | Renamed to ai-video-subtitle |
 
 ## Unchanged

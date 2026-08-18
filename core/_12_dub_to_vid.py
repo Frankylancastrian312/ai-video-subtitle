@@ -31,7 +31,6 @@ TRANS_BACK_COLOR = '&H33000000'
 def merge_video_audio():
     """Merge video and audio, and reduce video volume"""
     VIDEO_FILE = find_video_files()
-    background_file = _BACKGROUND_AUDIO_FILE
     
     if not load_key("burn_subtitles"):
         rprint("[bold yellow]Warning: A 0-second black video will be generated as a placeholder as subtitles are not burned in.[/bold yellow]")
@@ -64,24 +63,28 @@ def merge_video_audio():
         f"BackColour={TRANS_BACK_COLOR},Alignment=2,MarginV=27,BorderStyle=4'"
     )
     
+    # The dub track replaces the original audio outright. Upstream mixed it with
+    # the Demucs-separated background here; without vocal separation there is no
+    # background stem to mix back in.
     cmd = [
-        'ffmpeg', '-y', '-i', VIDEO_FILE, '-i', background_file, '-i', normalized_dub_audio,
+        'ffmpeg', '-y', '-i', VIDEO_FILE, '-i', normalized_dub_audio,
         '-filter_complex',
         f'[0:v]scale={TARGET_WIDTH}:{TARGET_HEIGHT}:force_original_aspect_ratio=decrease,'
         f'pad={TARGET_WIDTH}:{TARGET_HEIGHT}:(ow-iw)/2:(oh-ih)/2,'
-        f'{subtitle_filter}[v];'
-        f'[1:a][2:a]amix=inputs=2:duration=first:dropout_transition=3[a]'
+        f'{subtitle_filter}[v]'
     ]
 
     if load_key("ffmpeg_gpu"):
         rprint("[bold green]Using GPU acceleration...[/bold green]")
-        cmd.extend(['-map', '[v]', '-map', '[a]', '-c:v', 'h264_nvenc'])
+        cmd.extend(['-map', '[v]', '-map', '1:a', '-c:v', 'h264_nvenc'])
     else:
-        cmd.extend(['-map', '[v]', '-map', '[a]'])
+        cmd.extend(['-map', '[v]', '-map', '1:a'])
     
     cmd.extend(['-c:a', 'aac', '-b:a', '96k', DUB_VIDEO])
     
-    subprocess.run(cmd)
+    result = subprocess.run(cmd)
+    if result.returncode != 0:
+        raise RuntimeError(f"ffmpeg failed with code {result.returncode} while writing {DUB_VIDEO}")
     rprint(f"[bold green]Video and audio successfully merged into {DUB_VIDEO}[/bold green]")
 
 if __name__ == '__main__':

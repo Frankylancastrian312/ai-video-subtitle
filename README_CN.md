@@ -22,7 +22,8 @@
 ## 环境要求
 
 - Python 3.10
-- PATH 里有 ffmpeg
+- PATH 里有 ffmpeg **和 ffprobe**（pydub 读时长要用 ffprobe；有些便携版 ffmpeg
+  只带 `ffmpeg.exe`，会在配音/切分阶段报错）
 - 一个 dlazy API 密钥——在
   [dlazy.com/dashboard/organization/api-key](https://dlazy.com/dashboard/organization/api-key) 获取
 
